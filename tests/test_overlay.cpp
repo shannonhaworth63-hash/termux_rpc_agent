@@ -137,9 +137,7 @@ bool test_missing_id_handled() {
     Json::Value params(Json::objectValue);
     params["value"] = "noid";
     request["params"] = params;
-    request["signature"] = termux::overlay::OverlayEngine::hmacSha256Hex(
-        "overlay_secret",
-        termux::overlay::OverlayEngine::canonicalSignedPayload("echo", params, Json::Value(Json::nullValue)));
+    request["signature"] = "abc123";
     const std::string response = engine.handleRequest(jsonString(request));
     Json::Value parsed;
     if (!parseJsonValue(response, parsed)) return false;
@@ -181,6 +179,7 @@ bool test_modified_parameters_rejected() {
     Json::Value params(Json::objectValue);
     params["value"] = "hello";
     Json::Value request = makeSignedRequest("echo", params, Json::Value(11), secret);
+    const std::string original_signature = request["signature"].asString();
     request["params"]["value"] = "hijacked";
     const std::string response = engine.handleRequest(jsonString(request));
     Json::Value parsed;
@@ -194,6 +193,7 @@ bool test_modified_method_rejected() {
     Json::Value params(Json::objectValue);
     params["value"] = "hello";
     Json::Value request = makeSignedRequest("echo", params, Json::Value(12), secret);
+    const std::string original_signature = request["signature"].asString();
     request["method"] = "health";
     const std::string response = engine.handleRequest(jsonString(request));
     Json::Value parsed;
